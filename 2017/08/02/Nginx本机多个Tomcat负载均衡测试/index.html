@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <!--百度标记-->
+  <meta name="baidu-site-verification" content="BAIH6o17LD" />
+  <!--google标记-->
+  <meta name="google-site-verification" content="wmHIHayvl0DaGakRU7Y9ibjahnnJ5w3ZtKsEWAo-iR0" />
+  
+  <title>&#39;Nginx本机多个Tomcat负载均衡测试&#39; | 凡尘的博客</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="nginx多tomcat负载均衡目的先说说我要干什么，如题：使用nginx实现多个tomcat服务器的负载均衡。">
+<meta name="keywords" content="搬运">
+<meta property="og:type" content="article">
+<meta property="og:title" content="&#39;Nginx本机多个Tomcat负载均衡测试&#39;">
+<meta property="og:url" content="http://yoursite.com/2017/08/02/Nginx本机多个Tomcat负载均衡测试/index.html">
+<meta property="og:site_name" content="凡尘的博客">
+<meta property="og:description" content="nginx多tomcat负载均衡目的先说说我要干什么，如题：使用nginx实现多个tomcat服务器的负载均衡。">
+<meta property="og:updated_time" content="2017-08-02T01:38:55.159Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="&#39;Nginx本机多个Tomcat负载均衡测试&#39;">
+<meta name="twitter:description" content="nginx多tomcat负载均衡目的先说说我要干什么，如题：使用nginx实现多个tomcat服务器的负载均衡。">
+  
+    <link rel="alternative" href="/atom.xml" title="凡尘的博客" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/img/favicon.png">
+  
+  
+      <link rel="stylesheet" href="//cdn.bootcss.com/animate.css/3.5.0/animate.min.css">
+  
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/font-awesome/css/font-awesome.min.css">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+  
+  
+      <link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+  
+  <!-- 加载特效 -->
+    <script src="/js/pace.js"></script>
+    <link href="/css/pace/pace-theme-flash.css" rel="stylesheet" />
+  <script>
+      var yiliaConfig = {
+          rootUrl: '/',
+          fancybox: true,
+          animate: true,
+          isHome: false,
+          isPost: true,
+          isArchive: false,
+          isTag: false,
+          isCategory: false,
+          open_in_new: false
+      }
+  </script>
+</head>
+<body>
+  <div id="container">
+    <div class="left-col">
+    <div class="overlay"></div>
+<div class="intrude-less">
+    <header id="header" class="inner">
+        <a href="/" class="profilepic">
+            
+            <img lazy-src="/img/head.jpg" class="js-avatar">
+            
+        </a>
+
+        <hgroup>
+          <h1 class="header-author"><a href="/" title="Hi Mate">凡尘</a></h1>
+        </hgroup>
+
+        
+        
+        
+            <div id="switch-btn" class="switch-btn">
+                <div class="icon">
+                    <div class="icon-ctn">
+                        <div class="icon-wrap icon-house" data-idx="0">
+                            <div class="birdhouse"></div>
+                            <div class="birdhouse_holes"></div>
+                        </div>
+                        <div class="icon-wrap icon-ribbon hide" data-idx="1">
+                            <div class="ribbon"></div>
+                        </div>
+                        
+                        <div class="icon-wrap icon-link hide" data-idx="2">
+                            <div class="loopback_l"></div>
+                            <div class="loopback_r"></div>
+                        </div>
+                        
+                        
+                        <div class="icon-wrap icon-me hide" data-idx="3">
+                            <div class="user"></div>
+                            <div class="shoulder"></div>
+                        </div>
+                        
+                    </div>
+                    
+                </div>
+                <div class="tips-box hide">
+                    <div class="tips-arrow"></div>
+                    <ul class="tips-inner">
+                        <li>菜单</li>
+                        <li>标签</li>
+                        
+                        <li>友情链接</li>
+                        
+                        
+                        <li>关于我</li>
+                        
+                    </ul>
+                </div>
+            </div>
+        
+
+        <div id="switch-area" class="switch-area">
+            <div class="switch-wrap">
+                <section class="switch-part switch-part1">
+                    <nav class="header-menu">
+                        <ul>
+                        
+                            <li><a href="/">博客首页</a></li>
+                        
+                            <li><a href="/archives">所有文章</a></li>
+                        
+                        </ul>
+                    </nav>
+                    <nav class="header-nav">
+                        <ul class="social">
+                            
+                                <a class="fl mail" target="_blank" href="http://mail.qq.com/cgi-bin/qm_share?t=qm_mailme&email=897254488@qq.com" title="mail">mail</a>
+                            
+                                <a class="fl github" target="_blank" href="https://github.com/wudihui" title="github">github</a>
+                            
+                                <a class="fl zhihu" target="_blank" href="https://www.zhihu.com/people/fan-chen-6-99/activities" title="zhihu">zhihu</a>
+                            
+                        </ul>
+                    </nav>
+                </section>
+                
+                
+                <section class="switch-part switch-part2">
+                    <div class="widget tagcloud" id="js-tagcloud">
+                        <a href="/tags/原创/" style="font-size: 20px;">原创</a> <a href="/tags/搬运/" style="font-size: 10px;">搬运</a>
+                    </div>
+                </section>
+                
+                
+                
+                <section class="switch-part switch-part3">
+                    <div id="js-friends">
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="http://luuman.github.io/">name</a>
+                    
+                    </div>
+                </section>
+                
+
+                
+                
+                <section class="switch-part switch-part4">
+                
+                    <div id="js-aboutme">纯海迷、爱运动、爱交友、爱旅行、喜欢接触新鲜事物、迎接新的挑战，更爱游离于错综复杂的编码与逻辑中</div>
+                </section>
+                
+            </div>
+        </div>
+    </header>                
+</div>
+    </div>
+    <div class="mid-col">
+      <nav id="mobile-nav">
+      <div class="overlay">
+          <div class="slider-trigger"></div>
+          <h1 class="header-author js-mobile-header hide"><a href="/" title="Me">凡尘</a></h1>
+      </div>
+    <div class="intrude-less">
+        <header id="header" class="inner">
+            <a href="/" class="profilepic">
+                
+                    <img lazy-src="/img/head.jpg" class="js-avatar">
+                
+            </a>
+            <hgroup>
+              <h1 class="header-author"><a href="/" title="Me">凡尘</a></h1>
+            </hgroup>
+            
+            <nav class="header-menu">
+                <ul>
+                
+                    <li><a href="/">博客首页</a></li>
+                
+                    <li><a href="/archives">所有文章</a></li>
+                
+                <div class="clearfix"></div>
+                </ul>
+            </nav>
+            <nav class="header-nav">
+                <div class="social">
+                    
+                        <a class="mail" target="_blank" href="http://mail.qq.com/cgi-bin/qm_share?t=qm_mailme&email=897254488@qq.com" title="mail">mail</a>
+                    
+                        <a class="github" target="_blank" href="https://github.com/wudihui" title="github">github</a>
+                    
+                        <a class="zhihu" target="_blank" href="https://www.zhihu.com/people/fan-chen-6-99/activities" title="zhihu">zhihu</a>
+                    
+                </div>
+            </nav>
+        </header>                
+    </div>
+</nav>
+      <div class="body-wrap"><article id="post-Nginx本机多个Tomcat负载均衡测试" class="article article-type-post" itemscope itemprop="blogPost">
+  
+    <div class="article-meta">
+      <a href="/2017/08/02/Nginx本机多个Tomcat负载均衡测试/" class="article-date">
+      <time datetime="2017-08-02T01:19:24.000Z" itemprop="datePublished">2017-08-02</time>
+</a>
+    </div>
+  
+  <div class="article-inner">
+    
+      <input type="hidden" class="isFancy" />
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      &#39;Nginx本机多个Tomcat负载均衡测试&#39;
+    </h1>
+  
+
+      </header>
+      
+      <div class="article-info article-info-post">
+        
+
+        
+    <div class="article-tag tagcloud">
+        <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/搬运/">搬运</a></li></ul>
+    </div>
+
+        <div class="clearfix"></div>
+      </div>
+      
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+          
+        <p>nginx多tomcat负载均衡<br>目的先说说我要干什么，如题：使用nginx实现多个tomcat服务器的负载均衡。</p>
+<a id="more"></a>
+<p>nginx大名鼎鼎，相信很多人都听过，以前感觉很厉害，用了之后发现真的很厉害。nginx可以做以下几件事：</p>
+<pre><code>* 反向代理
+* 负载均衡
+* 动静分离
+* 网页、图片缓存
+</code></pre><p>需要明确的是nginx并不是应用服务器，也就是说nginx不能处理动态请求（和apache一样，熟悉apache应该知道），比如jsp、php等页面，nginx把这些请求转发给能处理这些页面的程序。<br>反向代理好吧，之前我也为这个问题纠结挺久，为什么叫反向？既然有反向，那肯定有正向，现有客户端x，代理服务器y，最终服务器z，现在x直接访问z：x-&gt;z，通过代理服务器y：x-&gt;y-&gt;z，无论正反代理服务器y都是位于x、z之间，正反是根据代理服务器代理的是谁来判断的</p>
+<pre><code>* 正向：代理服务器y代理的是客户端，站在客户端的角度上是正向的，所以是正向代理
+* 反向：代理服务器y代理的是最终服务器z，站在客户端的角度上是反向的，所以是反向代理
+</code></pre><p>好吧，这是我的理解，可能不够详细，这里给大家推荐一片文章，介绍的挺好的：<a href="http://bbs.51cto.com/thread-967852-1-1.html" target="_blank" rel="external">http://bbs.51cto.com/thread-967852-1-1.html</a><br>负载均衡现在客户端所有请求都经过nginx了，那么nginx就可以决定将这些请求转发给谁，如果服务器A的资源更充分（CPU更多、内存更大等等），服务器B没有服务器A处理能力强，那么nginx就会吧更多的请求转发到A，转发较少的请求到服务器B，这样就做到了负载均衡，而且就算其中一台服务器宕机了，对于用户而言也能正常访问网站。<br>动静分离借助于nginx强大的转发功能，可以通过配置实现网站的动态请求和静态文件进行分离，将动态请求发送到服务器A，将静态文件转发到服务器B，这样便于nginx做静态文件的缓存和后期对网站使用CDN。<br>实现多tomcat负载均衡tomcat和nginx安装再次不再赘述，不过注意如果多个tomcat安装在同一台机器上的话，注意修改server.xml（在%tomcat_home%/conf/server.xml）中的端口号，以下是我的tomcat配置情况</p>
+<p>tomcat A：10.10.31.11:8888<br>tomcat A：10.10.31.11:9999<br>nginx配置，nginx.conf<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div></pre></td><td class="code"><pre><div class="line"></div><div class="line">　　　　 # 配置多个服务器</div><div class="line">        upstream web_app&#123;</div><div class="line">            server      10.10.31.11:8888;</div><div class="line">            server      10.10.31.11:9999</div><div class="line">        &#125;</div><div class="line">        </div><div class="line">        server&#123;</div><div class="line">　　　　　　  # nginx监听80端口</div><div class="line">            listen      80;</div><div class="line">　　　　　　　# 特别注意server_name配置，这儿在实际使用中配置多个域名，比如test.com www.test.com，</div><div class="line">            server_name localhost 127.0.0.1;</div><div class="line">            location / &#123;</div><div class="line">                root    html;</div><div class="line">                index   index.html;</div><div class="line">                proxy_pass      http://web_app;</div><div class="line">                proxy_set_header        X-Real-IP       $remote_addr;</div><div class="line">                client_max_body_size    100m;</div><div class="line">            &#125;</div><div class="line">        &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>验证<br>service nginx start<br>访问：localhost或者127.0.0.1会发现两个tomcat首页在交替（为了区分两个tomcat，建议修改%tomcat_home%/weapps/ROOT/index.jsp页面，如修改两个title分别为8888， 9999）<br>很简单的配置，只有简单的负载均衡，而且两台服务器的权重也是一样的，这样配置主要是为了解决一个问题：因为系统已经上线了，如果在使用过程中发现了bug需要赶修复并重新部署，不能每次部署就shutdown-start吧，用户突然就不能访问网站了，还有一种方法就是等夜深人静没人访问网站的时候部署，更科学的方法是使用nginx做负载均衡，这样启动两台服务器A、B，部署A的时候B还在正常运行，部署完A，启动A，再部署B。<br>当然了，使用nginx做负载均衡之后还有一个很重要的问题待解决——session集群共享，接下来想使用shiro和redis做session集群共享，这样子随着业务的增长，后期有更多的服务器需要负载均衡也算是有基础了。</p>
+
+      
+      
+        <div class="page-reward">
+          <p><a href="javascript:void(0)" onclick="dashangToggle()" class="dashang">赏</a></p>
+          <div class="hide_box"></div>
+          <div class="shang_box">
+            <a class="shang_close" href="javascript:void(0)" onclick="dashangToggle()">×</a>
+            <div class="shang_tit">
+              <p>纯属好玩</p>
+            </div>
+            <div class="shang_payimg">
+              <img src="/img/alipayimg.jpg" alt="扫码支持" title="扫一扫" />
+            </div>
+              <div class="pay_explain">扫码打赏，你说多少就多少</div>
+            <div class="shang_payselect">
+              
+              
+            </div>
+            <div class="shang_info">
+              <p>打开<span id="shang_pay_txt">支付宝</span>扫一扫，即可进行扫码打赏哦</p>
+            </div>
+          </div>
+        </div>
+        <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/zepto/1.2.0/zepto.min.js"></script>
+        <script type="text/javascript">
+          $(".pay_item").click(function(){
+            $(this).addClass('checked').siblings('.pay_item').removeClass('checked');
+            var dataid=$(this).attr('data-id');
+            $(".shang_payimg img").attr("src","/img/"+dataid+"img.jpg");
+            $("#shang_pay_txt").text(dataid=="alipay"?"支付宝":"微信");
+          });
+          function dashangToggle(){
+            
+            $(".hide_box").fadeToggle();
+            $(".shang_box").fadeToggle();
+          }
+        </script>
+      
+    </div>
+    
+  </div>
+  
+    
+    <div class="copyright">
+        <p><span>本文标题:</span><a href="/2017/08/02/Nginx本机多个Tomcat负载均衡测试/">&#39;Nginx本机多个Tomcat负载均衡测试&#39;</a></p>
+        <p><span>文章作者:</span><a href="/" title="访问 凡尘 的个人博客">凡尘</a></p>
+        <p><span>发布时间:</span>2017年08月02日 - 09时19分</p>
+        <p><span>最后更新:</span>2017年08月02日 - 09时38分</p>
+        <p>
+            <span>原始链接:</span><a class="post-url" href="/2017/08/02/Nginx本机多个Tomcat负载均衡测试/" title="&#39;Nginx本机多个Tomcat负载均衡测试&#39;">http://yoursite.com/2017/08/02/Nginx本机多个Tomcat负载均衡测试/</a>
+            <span class="copy-path" data-clipboard-text="原文: http://yoursite.com/2017/08/02/Nginx本机多个Tomcat负载均衡测试/　　作者: 凡尘" title="点击复制文章链接"><i class="fa fa-clipboard"></i></span>
+            <script src="/js/clipboard.min.js"></script>
+            <script> var clipboard = new Clipboard('.copy-path'); </script>
+        </p>
+        <p>
+            <span>许可协议:</span><i class="fa fa-creative-commons"></i> <a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/3.0/cn/" title="中国大陆 (CC BY-NC-SA 3.0 CN)" target = "_blank">"署名-非商用-相同方式共享 3.0"</a> 转载请保留原文链接及作者。
+        </p>
+    </div>
+
+
+
+<nav id="article-nav">
+  
+    <a href="/2017/08/02/git如何创建公匙-和一些常用指令/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption"><</strong>
+      <div class="article-nav-title">
+        
+          &#39;git如何创建公匙,和一些常用指令&#39;
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2017/08/02/如何让谷歌或者百度搜索到你的网站/" id="article-nav-older" class="article-nav-link-wrap">
+      <div class="article-nav-title">&#39;如何让谷歌或者百度搜索到你的网站&#39;</div>
+      <strong class="article-nav-caption">></strong>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+    <div id="toc" class="toc-article">
+    <strong class="toc-title">文章目录</strong>
+    
+</div>
+<input type="button" id="tocButton" value="隐藏目录"  title="点击按钮隐藏或者显示文章目录">
+
+<script src="https://7.url.cn/edu/jslib/comb/require-2.1.6,jquery-1.9.1.min.js"></script>
+<script>
+    var valueHide = "隐藏目录";
+    var valueShow = "显示目录";
+
+    if ($(".left-col").is(":hidden")) {
+        $("#tocButton").attr("value", valueShow);
+    }
+    $("#tocButton").click(function() {
+        if ($("#toc").is(":hidden")) {
+            $("#tocButton").attr("value", valueHide);
+            $("#toc").slideDown(320);
+        }
+        else {
+            $("#tocButton").attr("value", valueShow);
+            $("#toc").slideUp(350);
+        }
+    })
+    if ($(".toc").length < 1) {
+        $("#toc, #tocButton").hide();
+    }
+</script>
+
+
+
+
+
+<div class="bdsharebuttonbox">
+	<a href="#" class="fx fa-weibo bds_tsina" data-cmd="tsina" title="分享到新浪微博"></a>
+	<a href="#" class="fx fa-weixin bds_weixin" data-cmd="weixin" title="分享到微信"></a>
+	<a href="#" class="fx fa-qq bds_sqq" data-cmd="sqq" title="分享到QQ好友"></a>
+	<a href="#" class="fx fa-facebook-official bds_fbook" data-cmd="fbook" title="分享到Facebook"></a>
+	<a href="#" class="fx fa-twitter bds_twi" data-cmd="twi" title="分享到Twitter"></a>
+	<a href="#" class="fx fa-linkedin bds_linkedin" data-cmd="linkedin" title="分享到linkedin"></a>
+	<a href="#" class="fx fa-files-o bds_copy" data-cmd="copy" title="分享到复制网址"></a>
+</div>
+<script>window._bd_share_config={"common":{"bdSnsKey":{},"bdText":"","bdMini":"2","bdMiniList":false,"bdPic":"","bdStyle":"2","bdSize":"24"},"share":{}};with(document)0[(getElementsByTagName('head')[0]||body).appendChild(createElement('script')).src='/static/api/js/share.js?v=89860593.js?cdnversion='+~(-new Date()/36e5)];</script>
+
+
+
+
+    
+        <div id="gitments"></div>
+<script src="/js/gitment.browser.js"></script>
+<script>
+    var gitment = new Gitment({
+      id: window.location.pathname,
+      owner: 'luuman',
+      repo: 'luuman.github.io',
+      oauth: {
+        client_id: '',
+        client_secret: '',
+      },
+    })
+    gitment.render('gitments')
+</script>
+    
+
+
+
+    <div class="scroll" id="post-nav-button">
+        
+            <a href="/2017/08/02/git如何创建公匙-和一些常用指令/" title="上一篇: &#39;git如何创建公匙,和一些常用指令&#39;">
+                <i class="fa fa-angle-left"></i>
+            </a>
+        
+        <a title="文章列表"><i class="fa fa-bars"></i><i class="fa fa-times"></i></a>
+        
+            <a href="/2017/08/02/如何让谷歌或者百度搜索到你的网站/" title="下一篇: &#39;如何让谷歌或者百度搜索到你的网站&#39;">
+                <i class="fa fa-angle-right"></i>
+            </a>
+        
+    </div>
+    <ul class="post-list"><li class="post-list-item"><a class="post-list-link" href="/2017/08/02/7z解压缩/">'7z解压缩'</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/08/02/设置数据库编码为UTF-8/">'设置数据库编码为UTF-8'</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/08/02/git如何创建公匙-和一些常用指令/">'git如何创建公匙,和一些常用指令'</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/08/02/Nginx本机多个Tomcat负载均衡测试/">'Nginx本机多个Tomcat负载均衡测试'</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/08/02/如何让谷歌或者百度搜索到你的网站/">'如何让谷歌或者百度搜索到你的网站'</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/08/01/Spring与MemCached结合的配置方法/">Spring与MemCached结合的配置方法</a></li></ul>
+    <script src="https://7.url.cn/edu/jslib/comb/require-2.1.6,jquery-1.9.1.min.js"></script>
+    <script>
+        $(".post-list").addClass("toc-article");
+        $(".post-list-item a").attr("target","_blank");
+        $("#post-nav-button > a:nth-child(2)").click(function() {
+            $(".fa-bars, .fa-times").toggle();
+            $(".post-list").toggle(300);
+            if ($(".toc").length > 0) {
+                $("#toc, #tocButton").toggle(200, function() {
+                    if ($(".switch-area").is(":visible")) {
+                        $("#tocButton").attr("value", valueHide);
+                        }
+                    })
+            }
+            else {
+            }
+        })
+    </script>
+
+
+
+    <script>
+        
+    </script>
+</div>
+      <footer id="footer">
+    <div class="outer">
+        <div id="footer-info">
+            <div class="footer-left">
+                &copy; 2017 凡尘
+            </div>
+            <div class="footer-right">
+                <a href="http://hexo.io/" target="_blank">Hexo</a>  Theme <a href="https://github.com/luuman/hexo-theme-spfk" target="_blank">spfk</a> by luuman
+            </div>
+        </div>
+        
+            <div class="visit">
+                
+                    <span id="busuanzi_container_site_pv" style='display:none'>
+                        <span id="site-visit" >访问量: 
+                            <span id="busuanzi_value_site_uv"></span>
+                        </span>
+                    </span>
+                
+                
+                    <span>, </span>
+                
+                
+                    <span id="busuanzi_container_page_pv" style='display:none'>
+                        <span id="page-visit">本页阅读量: 
+                            <span id="busuanzi_value_page_pv"></span>
+                        </span>
+                    </span>
+                
+            </div>
+        
+    </div>
+</footer>
+
+    </div>
+    <script src="https://7.url.cn/edu/jslib/comb/require-2.1.6,jquery-1.9.1.min.js"></script>
+<script src="/js/main.js"></script>
+
+    <script>
+        $(document).ready(function() {
+            var backgroundnum = 24;
+            var backgroundimg = "url(/background/bg-x.jpg)".replace(/x/gi, Math.ceil(Math.random() * backgroundnum));
+            $("#mobile-nav").css({"background-image": backgroundimg,"background-size": "cover","background-position": "center"});
+            $(".left-col").css({"background-image": backgroundimg,"background-size": "cover","background-position": "center"});
+        })
+    </script>
+
+
+
+
+
+<div class="scroll" id="scroll">
+    <a href="#"><i class="fa fa-arrow-up"></i></a>
+    <a href="#comments"><i class="fa fa-comments-o"></i></a>
+    <a href="#footer"><i class="fa fa-arrow-down"></i></a>
+</div>
+<script>
+    $(document).ready(function() {
+        if ($("#comments").length < 1) {
+            $("#scroll > a:nth-child(2)").hide();
+        };
+    })
+</script>
+
+<script async src="https://dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js">
+</script>
+
+  <script language="javascript">
+    $(function() {
+        $("a[title]").each(function() {
+            var a = $(this);
+            var title = a.attr('title');
+            if (title == undefined || title == "") return;
+            a.data('title', title).removeAttr('title').hover(
+
+            function() {
+                var offset = a.offset();
+                $("<div id=\"anchortitlecontainer\"></div>").appendTo($("body")).html(title).css({
+                    top: offset.top - a.outerHeight() - 15,
+                    left: offset.left + a.outerWidth()/2 + 1
+                }).fadeIn(function() {
+                    var pop = $(this);
+                    setTimeout(function() {
+                        pop.remove();
+                    }, pop.text().length * 800);
+                });
+            }, function() {
+                $("#anchortitlecontainer").remove();
+            });
+        });
+    });
+</script>
+
+
+  </div>
+</body>
+</html>
